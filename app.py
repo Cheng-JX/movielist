@@ -3,13 +3,14 @@ import sys
 import click
 
 from flask import Flask, render_template
-from flask import Flask
+from flask import request, url_for, redirect, flash
 from flask_sqlalchemy import SQLAlchemy # 导入扩展类
 from datetime import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.root_path, 'data.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # 关闭对模型修改的监控
+app.config['SECRET_KEY'] = 'dev' # 等同于 app.secret_key = 'dev'
 # 在扩展类实例化前加载配置
 db = SQLAlchemy(app)
 
@@ -82,12 +83,76 @@ def inject_user(): # 函数名可以随意修改
     user = User.query.first()
     return dict(user=user) # 需要返回字典，等同于return {'user': user}
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    movies = Movie.query.all()  # 读取所有电影记录
-    return render_template('index.html', movies=movies)
+    if request.method == 'POST':
+        title = request.form.get('title')
+        year = request.form.get('year')
+        country = request.form.get('country')
+        genre = request.form.get('genre')
+        date_str = request.form.get('date')
+
+        # 验证数据
+        if not title or not year or len(year) > 4 or len(title) > 255 or len(country) > 10 or len(genre) > 10:
+            flash('Invalid input.')
+            return redirect(url_for('index'))
+
+        date = datetime.strptime(date_str, '%Y-%m-%d') if date_str else None
+
+        # 保存数据到数据库
+        movie = Movie(Title=title, Year=year, Country=country, Genre=genre, Date=date)
+        db.session.add(movie)
+        db.session.commit()
+        flash('Item created.')
+        return redirect(url_for('index'))
+
+    user = User.query.first()
+    movies = Movie.query.all()
+    return render_template('index.html', user=user, movies=movies)
 
 @app.errorhandler(404) # 传入要处理的错误代码
 def page_not_found(e): # 接受异常对象作为参数
     return render_template('404.html'), 404 # 返回模板和状态码
 
+@app.route('/movie/edit/<int:movie_id>', methods=['GET', 'POST'])
+def edit(movie_id):
+    movie = Movie.query.get_or_404(movie_id)
+
+    if request.method == 'POST':
+        # 处理编辑表单的提交请求
+        title = request.form['title']
+        year = request.form['year']
+        country = request.form['country']
+        genre = request.form['genre']
+        date_str = request.form['date']
+
+        # 验证输入
+        if not title or not year or len(year) > 4 or len(title) > 255 or len(country) > 10 or len(genre) > 10:
+            flash('Invalid input.')
+            return redirect(url_for('edit', movie_id=movie_id))
+
+        date = datetime.strptime(date_str, '%Y/%m/%d') if date_str else None
+
+        # 更新电影记录
+        movie.Title = title
+        movie.Year = year
+        movie.Country = country
+        movie.Genre = genre
+        movie.Date = date
+
+        # 提交更改到数据库
+        db.session.commit()
+
+        flash('Item updated.')
+        return redirect(url_for('index'))
+
+    # 使用电影详细信息呈现编辑页面
+    return render_template('edit.html', movie=movie)
+
+@app.route('/movie/delete/<int:movie_id>', methods=['POST']) #限定只接受 POST 请求
+def delete(movie_id):
+    movie = Movie.query.get_or_404(movie_id) # 获取电影记录
+    db.session.delete(movie) # 删除对应的记录
+    db.session.commit() # 提交数据库会话
+    flash('Item deleted.')
+    return redirect(url_for('index')) # 重定向回主页

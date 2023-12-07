@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>搜索结果："{{ keyword }}"</h2>
+    {% if results %}
+        <ul class="movie-list">
+            {% for movie in results %}
+                <li>
+                    {{ movie.Title|highlight(keyword) }} - {{ movie.Year|highlight(keyword) }} - {{ movie.Genre|highlight(keyword) }} - {{ movie.Country|highlight(keyword) }} - {{ movie.Date|default('N/A') }}
+                    <span class="float-right">
+                        {% if current_user.is_authenticated %}
+                            <a class="btn" href="{{ url_for('edit', movie_id=movie.id) }}">Edit</a>
+                            <form class="inline-form" method="post" action="{{ url_for('delete', movie_id=movie.id) }}">
+                                <input class="btn" type="submit" name="delete" value="Delete" onclick="return confirm('Are you sure?')">
+                            </form>
+                        {% endif %}
+                        <a class="douban" href="https://movie.douban.com/subject_search?search_text={{movie.Title }}" target="_blank" title="Find this movie on douban">豆瓣</a>  
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="not-found-message">很遗憾没有找到相关的电影，回主页看看吧~</p>
+    {% endif %}
+{% endblock %}

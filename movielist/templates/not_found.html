@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="not-found-message">
+        <p>很遗憾，没有找到相关的电影。</p>
+        <p>回主页看看吧~</p>
+    </div>
+{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <style>
+        .not-found-message {
+            text-align: center;
+            margin-top: 50px;
+        }
+    </style>
+{% endblock %}

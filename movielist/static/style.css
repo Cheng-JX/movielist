@@ -74,6 +74,36 @@ nav li a:hover {
     background-color: #111;
 }
 
+/* 新的搜索框样式 */
+nav .search-box {
+    float: right;
+    margin-right: 10px;  /* 可以调整右侧间距 */
+    display: flex;
+    align-items: center;
+}
+
+nav .search-box form {
+    display: flex;
+}
+
+nav .search-box input[type="text"] {
+    padding: 8px;
+    margin-top: 4px;  /* 上下居中 */
+    margin-bottom: 4px;  /* 上下居中 */
+}
+
+nav .search-box input[type="submit"] {
+    background-color: #555;
+    color: white;
+    border: none;
+    padding: 12px;  /* 可以调整按钮字体大小 */
+    cursor: pointer;
+}
+
+/* ################### */
+
+
+
 .float-right {
     float: right;
 }

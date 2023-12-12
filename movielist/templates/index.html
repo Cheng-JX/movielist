@@ -1,7 +1,31 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<p>{{ movies|length }} Titles</p>
+<p>{{ movies|length-1 }} Titles</p>
+
+<div class="sorting-buttons">
+    <a class="btn" href="{{ url_for('sort', option='default') }}">默认顺序</a>
+    <a class="btn" href="{{ url_for('sort', option='date') }}">日期顺序</a>
+    <a class="btn" href="{{ url_for('sort', option='box') }}">票房顺序</a>
+</div>
+<ul class="movie-list">
+    {% for movie in movies %}
+        {% if movie.id > 1000 %}
+            <li>{{ movie.Title }} - {{ movie.Year }} - {{ movie.Country }} - {{ movie.Genre }} - {{ movie.Date }}
+                <span class="float-right">
+                    {% if current_user.is_authenticated %}
+                    <a class="btn" href="{{ url_for('edit', movie_id=movie.id) }}">编辑</a>
+                    <form class="inline-form" method="post" action="{{ url_for('delete', movie_id=movie.id) }}">
+                        <input class="btn" type="submit" name="delete" value="删除" onclick="return confirm('Are you sure?')">
+                    </form>
+                    {% endif %}
+		    <a href="{{ url_for('movie_detail', movie_id=movie.id) }}" class="btn btn-info">查看详情</a>
+                </span>
+            </li>
+        {% endif %}
+    {% endfor %}
+</ul>
+
 {% if current_user.is_authenticated %}
 <form method="post">
     Title <input type="text" name="title" autocomplete="off" required>
@@ -9,24 +33,14 @@
     Country <input type="text" name="country" autocomplete="off" required>
     Genre <input type="text" name="genre" autocomplete="off" required>
     Date <input type="text" name="date" autocomplete="off" required>
-    <input class="btn" type="submit" name="submit" value="添加">
+    <input class="btn" type="submit" name="submit_movie" value="电影添加">
+</form>
+<form method="post">
+    Title <input type="text" name="title" autocomplete="off" required>
+    Box <input type="text" name="box" autocomplete="off" required>
+    <input class="btn" type="submit" name="submit_box" value="票房添加">
 </form>
 {% endif %}
-<ul class="movie-list">
-    {% for movie in movies %}
-    <li>{{ movie.Title }} - {{ movie.Year }} - {{ movie.Country }} - {{ movie.Genre }} - {{ movie.Date }}
- 	<span class="float-right">
-	    {% if current_user.is_authenticated %}
-	    <a class="btn" href="{{ url_for('edit', movie_id=movie.id) }}">编辑</a>
-	    <form class="inline-form" method="post" action="{{ url_for('delete', movie_id=movie.id) }}">
-		<input class="btn" type="submit" name="delete" value="删除" onclick="return confirm('Are you sure?')">
-	    </form>
-	    {% endif %}
-	    <a class="douban" href="https://movie.douban.com/subject_search?search_text={{movie.Title }}" target="_blank" title="Find this movie on douban">豆瓣</a>  
-	</span>
-    </li>
-    {% endfor %}
-</ul>
 
 <img alt="TV" class="TV" src="{{ url_for('static', filename='images/TV.gif') }}" title="bilibili~tv">
 {% endblock %}

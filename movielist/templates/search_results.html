@@ -2,9 +2,19 @@
 
 {% block content %}
     <h2>搜索结果："{{ keyword }}"</h2>
-    {% if results %}
+    {% if movie_results %}
+    <form method="post" action="{{ url_for('search') }}">
+         <input type="text" name="keyword" value="{{ keyword }}">
+    	 <select name="sort_option">
+             <option value="default" {% if sort_option == 'default' %}selected{% endif %}>默认顺序</option>
+             <option value="date" {% if sort_option == 'date' %}selected{% endif %}>日期顺序</option>
+             <option value="box" {% if sort_option == 'box' %}selected{% endif %}>票房顺序</option>
+         </select>
+         <input type="submit" value="排序">
+     </form>
+        <h3>相关电影：{{ movie_results|length }} 条</h3>
         <ul class="movie-list">
-            {% for movie in results %}
+            {% for movie in movie_results %}
                 <li>
                     {{ movie.Title|highlight(keyword) }} - {{ movie.Year|highlight(keyword) }} - {{ movie.Genre|highlight(keyword) }} - {{ movie.Country|highlight(keyword) }} - {{ movie.Date|default('N/A') }}
                     <span class="float-right">
@@ -14,12 +24,30 @@
                                 <input class="btn" type="submit" name="delete" value="Delete" onclick="return confirm('Are you sure?')">
                             </form>
                         {% endif %}
-                        <a class="douban" href="https://movie.douban.com/subject_search?search_text={{movie.Title }}" target="_blank" title="Find this movie on douban">豆瓣</a>  
+		        <a href="{{ url_for('movie_detail', movie_id=movie.id) }}" class="btn btn-info">查看详情</a>
                     </span>
                 </li>
             {% endfor %}
         </ul>
-    {% else %}
-        <p class="not-found-message">很遗憾没有找到相关的电影，回主页看看吧~</p>
     {% endif %}
+
+    {% if actor_results %}
+        <h3>相关演职人员：{{ actor_results|length }} 条</h3>
+        <ul class="actor-list">
+            {% for actor in actor_results %}
+                <li>
+                    {{ actor.Name|highlight(keyword) }} - {{ actor.Country|highlight(keyword) }}
+                    <span class="float-right">
+		        <a class="btn" href="{{ url_for('actor_detail', actor_id=actor.id) }}">查看详情</a>
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if not movie_results and not actor_results %}
+        <p class="not-found-message">很遗憾没有找到相关的电影和演职人员，回主页看看吧~</p>
+    {% endif %}
+
+<img alt="TV" class="TV" src="{{ url_for('static', filename='images/TV.gif') }}" title="bilibili~tv">
 {% endblock %}

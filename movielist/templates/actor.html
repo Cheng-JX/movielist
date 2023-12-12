@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<p>{{ actors|length - 1 }} Titles</p>
+
+<ul class="actor-list">
+    {% for actor in actors %}
+        {% if actor.id > 2000 %}
+            <li>
+                {{ actor.Name }} - {{ actor.Country }}
+                <span class="float-right">
+		    <a class="btn" href="{{ url_for('actor_detail', actor_id=actor.id) }}">查看详情</a>
+                    {% if current_user.is_authenticated %}
+                        <form class="inline-form" method="post" action="{{ url_for('delete_actor', actor_id=actor.id) }}">
+                            <input class="btn" type="submit" name="delete" value="删除" onclick="return confirm('Are you sure?')">
+                        </form>
+			<a class="btn" href="{{ url_for('actor_edit', actor_id=actor.id) }}">编辑</a>
+                    {% endif %}
+                </span>
+            </li>
+        {% endif %}
+    {% endfor %}
+</ul>
+
+{% if current_user.is_authenticated %}
+<form method="post">
+    Name <input type="text" name="name" autocomplete="off" required>
+    Gender <input type="text" name="gender" autocomplete="off" required>
+    Country <input type="text" name="country" autocomplete="off" required>
+    <input class="btn submit-btn" type="submit" name="submit" value="演员添加">
+</form>
+{% endif %}
+
+<img alt="TV" class="TV" src="{{ url_for('static', filename='images/TV.gif') }}" title="bilibili~tv">
+{% endblock %}

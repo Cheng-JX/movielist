@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ actor.Name }} - 演员详情{% endblock %}
+
+{% block header %}演员详情{% endblock %}
+
+{% block content %}
+    <div class="detail-page">
+        <h2>{{ actor.Name }}</h2>
+        
+        <p><strong>性别:</strong> {{ actor.Gender }}</p>
+        <p><strong>国家:</strong> {{ actor.Country }}</p>
+
+        <div class="detail-section">
+            <h3>主演电影:</h3>
+            <ul class="detail-list">
+                {% if main_actor_movies %}
+                    {% for movie in main_actor_movies %}
+                        <li><a href="{{ url_for('movie_detail', movie_id=movie.id) }}">{{ movie.Title }}</a></li>
+                    {% endfor %}
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="detail-section">
+            <h3>导演电影:</h3>
+            <ul class="detail-list">
+                {% if director_movies %}
+                    {% for movie in director_movies %}
+                        <li><a href="{{ url_for('movie_detail', movie_id=movie.id) }}">{{ movie.Title }}</a></li>
+                    {% endfor %}
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="detail-section">
+            <h4>更多详情：</h4>
+            <a class="douban" href="https://movie.douban.com/subject_search?search_text={{ actor.Name }}" target="_blank" title="Find this actor on douban">点击豆瓣链接查看</a>
+        </div>
+
+        <img alt="TV" class="TV" src="{{ url_for('static', filename='images/TV.gif') }}" title="bilibili~tv">
+    </div>
+{% endblock %}

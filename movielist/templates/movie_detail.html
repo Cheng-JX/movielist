@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ movie.Title }} - 电影详情{% endblock %}
+
+{% block header %}电影详情{% endblock %}
+
+{% block content %}
+    <div class="detail-page">
+        <h2>{{ movie.Title }}</h2>
+        
+        <p><strong>上映日期:</strong> {{ movie.Date.strftime('%Y-%m-%d') if movie.Date else 'N/A' }}</p>
+        <p><strong>国家:</strong> {{ movie.Country }}</p>
+        <p><strong>类型:</strong> {{ movie.Genre }}</p>
+        <p><strong>年份:</strong> {{ movie.Year }}</p>
+
+        <div class="detail-section">
+            <h3>导演:</h3>
+            <ul class="detail-list">
+                {% if directors %}
+                    {% for director in directors %}
+                        <li><a href="{{ url_for('actor_detail', actor_id=director.id) }}">{{ director.Name }}</a></li>
+                    {% endfor %}
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="detail-section">
+            <h3>主演:</h3>
+            <ul class="detail-list">
+                {% if main_actors %}
+                    {% for main_actor in main_actors %}
+                        <li><a href="{{ url_for('actor_detail', actor_id=main_actor.id) }}">{{ main_actor.Name }}</a></li>
+                    {% endfor %}
+                {% endif %}
+            </ul>
+        </div>
+
+        <p><strong>票房:</strong> {{ movie_box.Box if movie_box else 'N/A' }}</p>
+
+        <div class="detail-section">
+            <h4>更多详情：</h4>
+            <a class="douban" href="https://movie.douban.com/subject_search?search_text={{ movie.Title }}" target="_blank" title="Find this movie on douban">点击豆瓣链接查看</a>
+        </div>
+
+        <img alt="TV" class="TV" src="{{ url_for('static', filename='images/TV.gif') }}" title="bilibili~tv">
+    </div>
+{% endblock %}

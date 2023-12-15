@@ -35,7 +35,7 @@ def index():
             genre = request.form.get('genre')
             date_str = request.form.get('date')
 
-            if not title or not year or not country or not genre:
+            if not title or not year or not country or not genre or len(year) > 4 or len(title) > 255 or len(country) > 10 or len(genre) > 10:
                 flash('无效输入。')
                 return redirect(url_for('index'))
 
@@ -65,8 +65,8 @@ def index():
                 box = float(box)
                 if box < 0:
                     raise ValueError("票房必须是非负数。")
-            except ValueError as e:
-                flash(f'无效输入。 {e}')
+            except ValueError:
+                flash(f'无效输入。')
                 return redirect(url_for('index'))
 
             movie = Movie.query.filter_by(Title=title).first()
@@ -139,38 +139,70 @@ def edit(movie_id):
     movie = Movie.query.get_or_404(movie_id)
 
     if request.method == 'POST':
-        # 处理编辑电影表单的提交请求
-        title = request.form['title']
-        year = request.form['year']
-        country = request.form['country']
-        genre = request.form['genre']
-        date_str = request.form['date']
 
-        # 验证输入
-        if not title or not year or not country or not genre or len(year) > 4 or len(title) > 255 or len(country) > 10 or len(genre) > 10:
-            flash('无效的输入。')
-            return redirect(url_for('edit', movie_id=movie_id))
+        if 'submit_m' in request.form:
+            # 处理电影信息添加
+            title = request.form.get('title')
+            year = request.form.get('year')
+            country = request.form.get('country')
+            genre = request.form.get('genre')
+            date_str = request.form.get('date')
 
-        try:
-            # 尝试将日期字符串转换为 datetime 对象
-            date = datetime.strptime(date_str, '%Y/%m/%d') if date_str else None
-        except ValueError:
-            # 转换失败，日期格式不正确
-            flash('无效的日期格式。')
+            # 验证输入
+            if not title or not year or not country or not genre or len(year) > 4 or len(title) > 255 or len(country) > 10 or len(genre) > 10:
+                flash('无效的输入。')
+                return redirect(url_for('edit', movie_id=movie_id))
+
+            try:
+                # 尝试将日期字符串转换为 datetime 对象
+                date = datetime.strptime(date_str, '%Y/%m/%d') if date_str else None
+            except ValueError:
+                # 转换失败，日期格式不正确
+                flash('无效的日期格式。')
+                return redirect(url_for('index'))
+
+            # 更新电影记录
+            movie.Title = title
+            movie.Year = year
+            movie.Country = country
+            movie.Genre = genre
+            movie.Date = date
+
+            # 提交更改到数据库
+            db.session.commit()
+
+            flash('电影信息已更新。')
             return redirect(url_for('index'))
 
-        # 更新电影记录
-        movie.Title = title
-        movie.Year = year
-        movie.Country = country
-        movie.Genre = genre
-        movie.Date = date
+        elif 'submit_b' in request.form:
+            # 处理票房编辑
+            box = request.form.get('box')
 
-        # 提交更改到数据库
-        db.session.commit()
+            if box:
+                try:
+                    box = float(box)
+                    if box < 0:
+                        raise ValueError("票房必须是非负数。")
+                except ValueError:
+                    flash(f'无效输入。')
+                    return redirect(url_for('edit', movie_id=movie_id))
 
-        flash('电影信息已更新。')
-        return redirect(url_for('index'))
+                # 查询电影票房记录
+                movie_box = MovieBox.query.filter_by(id=movie.id).first()
+
+                if not movie_box:
+                    # 如果不存在票房记录，创建新的票房记录
+                    movie_box = MovieBox(id=movie.id, Box=box)
+                    db.session.add(movie_box)
+                else:
+                    # 如果存在票房记录，更新票房值
+                    movie_box.Box = box
+
+                # 提交更改到数据库
+                db.session.commit()
+
+                flash('电影票房已更新。')
+                return redirect(url_for('index'))
 
     # 使用电影详细信息和关系呈现编辑页面
     return render_template('edit.html', movie=movie)
@@ -214,6 +246,11 @@ def actor_edit(actor_id):
 @login_required
 def delete(movie_id):
     movie = Movie.query.get_or_404(movie_id)
+
+    # 删除电影相关的票房记录
+    movie_box = MovieBox.query.filter_by(id=movie_id).first()
+    if movie_box:
+        db.session.delete(movie_box)
 
     # 删除所有与电影相关的关联记录
     try:

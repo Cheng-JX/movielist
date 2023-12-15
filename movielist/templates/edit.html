@@ -8,6 +8,12 @@
         Country <input type="text" name="country" autocomplete="off" value="{{ movie.Country }}">
         Genre <input type="text" name="genre" autocomplete="off" value="{{ movie.Genre }}">
         Date <input type="text" name="date" autocomplete="off" value="{{ movie.Date.strftime('%Y/%m/%d') }}">
-        <input class="btn" type="submit" name="submit" value="更新电影信息">
+        <input class="btn" type="submit" name="submit_m" value="更新电影信息">
+    </form>
+    
+    <form method="post">
+	<input type="hidden" name="movie_id" value="{{ movie.id }}">
+        Box <input type="text" name="box" autocomplete="off" value="{{ movie.Box.Box if movie.Box else '' }}">
+        <input class="btn" type="submit" name="submit_b" value="更新票房信息">
     </form>
 {% endblock %}
